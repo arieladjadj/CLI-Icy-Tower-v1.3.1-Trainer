@@ -5,6 +5,7 @@
 
 DWORD FindProcessId(const std::wstring& processName);
 uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName);
+void RegisterHotKeys();
 
 int main()
 {
@@ -47,16 +48,49 @@ int main()
 	uintptr_t comboAddr = addr2 + 0x44;	
 	uintptr_t buffer = addr2 + 0x40;
 	uintptr_t mul = addr2 + 0x48;
+	uintptr_t scoreAddr = addr2 + 0x2c;
 
-	//Write to it
-	int newCombo = 3;
-	WriteProcessMemory(hProcess, (BYTE*)mul, &newCombo, sizeof(newCombo), nullptr);
+	//change score
+	int newScore = 0;
+	WriteProcessMemory(hProcess, (BYTE*)scoreAddr, &newScore, sizeof(newScore), nullptr);
 
-	newCombo = 1337;
-	WriteProcessMemory(hProcess, (BYTE*)comboAddr, &newCombo, sizeof(newCombo), nullptr);
 
-	 newCombo = 10;
-	WriteProcessMemory(hProcess, (BYTE*)buffer, &newCombo, sizeof(newCombo), nullptr);
+	MSG msg = { 0 };
+
+	RegisterHotKeys();
+	while (GetMessage(&msg, NULL, 0, 0) != 0)
+	{
+		PeekMessage(&msg, 0, 0, 0, 0x0001);
+		switch (msg.message)
+		{
+		case WM_HOTKEY:
+			if (msg.wParam == 0)
+			{
+				printf("F1 Pressed");
+			}
+			else if (msg.wParam ==1)
+			{
+				printf("F2 Pressed");
+			}
+		}
+
+	}
+
+
+	
+
+
+
+	//combo 
+	////Write to it
+	//int newCombo = 2;
+	//WriteProcessMemory(hProcess, (BYTE*)mul, &newCombo, sizeof(newCombo), nullptr);
+
+	//newCombo = 1337;
+	//WriteProcessMemory(hProcess, (BYTE*)comboAddr, &newCombo, sizeof(newCombo), nullptr);
+
+	// newCombo = 1;
+	//WriteProcessMemory(hProcess, (BYTE*)buffer, &newCombo, sizeof(newCombo), nullptr);
 
 
 
@@ -116,4 +150,15 @@ uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName)
 	}
 	CloseHandle(hSnap);
 	return modBaseAddr;
+}
+
+void RegisterHotKeys()
+{
+	for (int i = 0; i <= 4; i++)
+	{
+		if (!RegisterHotKey(NULL, i, NULL, VK_F1 + i))
+		{
+			std::cerr << ("Could not register F%d hotkey\n");
+		}
+	}
 }
