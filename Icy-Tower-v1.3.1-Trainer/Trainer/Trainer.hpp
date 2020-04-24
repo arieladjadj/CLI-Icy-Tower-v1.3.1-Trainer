@@ -2,19 +2,23 @@
 #include <windows.h>
 #include <tlhelp32.h>
 #include <string>
+#include <iostream>
 
 class Trainer
 {
 public:
-	Trainer();
-	void start();
+	~Trainer();
+	void train();
 
 private:
-	HANDLE _hGame;
+	HANDLE _hGameProcess, _hGameThread;
+	uintptr_t _moduleBaseAddress;
 
-	void setGameHandle();
-	void printMenu();
 
+	void setGameHandle(std::wstring gameName);
+	DWORD FindProcessId(const std::wstring& processName);
+	//void printMenu();
+	void printAsciiArt();
 
 };
 

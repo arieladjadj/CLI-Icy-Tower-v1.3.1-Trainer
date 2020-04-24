@@ -1,11 +1,63 @@
 #include "Trainer.hpp"
 
+Trainer::~Trainer() {
+	try {
+		CloseHandle(this->_hGameProcess);
+	}
+	catch (...) {
 
+	}
+}
 
+void Trainer::train() {
+	printAsciiArt();
+	setGameHandle(L"icytower13.exe");
+}
 
+void Trainer::setGameHandle(std::wstring gameName) {
+	//std::wstring processName = L"icytower13.exe";
+	HANDLE hProcess = 0;
+	HANDLE hThread = 0;
+	DWORD processID = FindProcessId(gameName);
 
+	if (processID == 0) {
+		std::wcout << "Could not find " << gameName.c_str() << std::endl;
+		std::cout << "Starting icy tower \n";
+		STARTUPINFO info = { sizeof(info) };
+		PROCESS_INFORMATION processInfo;
+		if (!CreateProcess(L"C:\\games\\icytower1.3\\icytower13.exe", nullptr, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
+			std::cerr << "Cannot start icy tower \nExit \n";
+			exit(1);
+		}
 
-DWORD FindProcessId(const std::wstring& processName)
+		hProcess = processInfo.hProcess;
+		hThread = processInfo.hThread;
+	}
+	else {
+		std::wcout << "Process ID is " << processID << std::endl;
+
+		//Get Handle to Process
+		hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, processID);
+	}
+	_hGameProcess = hProcess;
+}
+
+void Trainer::printAsciiArt() {
+	std::cout << " _____             _____                             __    _____   _____         _                 " << "\n";
+	std::cout << "|_   _|           |_   _|                           /  |  |____ | |_   _|       (_)                " << "\n";
+	std::cout << "  | |  ___ _   _    | | _____      _____ _ ____   __`| |      / /   | |_ __ __ _ _ _ __   ___ _ __ " << "\n";
+	std::cout << "  | | / __| | | |   | |/ _ \\ \\ /\\ / / _ \\ '__\\ \\ / / | |      \\ \\   | | '__/ _` | | '_ \\ / _ \\ '__|" << "\n";
+	std::cout << " _| || (__| |_| |   | | (_) \ V  V //  __// |  \\ V / _| |__.___/ /   | | | | (_| | | | | |  __/ |   " << "\n";
+	std::cout << " \\___/\\___|\\__, |   \\_/\\___/ \\_/\\_/ \\___|_|    \\_/  \\___(_)____/    \\_/_|  \\__,_|_|_| |_|\\___|_|   " << "\n";
+	std::cout << "            __/ |                                                                                  " << "\n";
+	std::cout << "           |___/                                                                                  " << "\n";
+
+	std::cout << "" << "\n";
+	std::cout << "" << "\n";
+
+}
+
+DWORD Trainer::FindProcessId(const std::wstring& processName)
 {
 	PROCESSENTRY32 processInfo;
 	processInfo.dwSize = sizeof(processInfo);

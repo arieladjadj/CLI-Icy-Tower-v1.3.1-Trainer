@@ -2,6 +2,7 @@
 #include <string>
 #include <windows.h>
 #include <tlhelp32.h>
+#include "Trainer.hpp"
 
 DWORD FindProcessId(const std::wstring& processName);
 uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName);
@@ -9,55 +10,58 @@ void RegisterHotKeys();
 
 int main()
 {
-	std::wstring processName = L"icytower13.exe";
-	HANDLE hProcess = 0;
+	Trainer trainer;
+	trainer.train();
 
-	DWORD processID = FindProcessId(processName);
+	//std::wstring processName = L"icytower13.exe";
+	//HANDLE hProcess = 0;
 
-	if (processID == 0) {
-		std::wcout << "Could not find " << processName.c_str() << std::endl;
-		std::cout << "Starting icy tower \n";
-		STARTUPINFO info = { sizeof(info) };
-		PROCESS_INFORMATION processInfo;
-		if (!CreateProcess(L"C:\\games\\icytower1.3\\icytower13.exe", nullptr, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
-			std::cerr << "Cannot start icy tower \nExit \n";
-			exit(1);
-		}
-		processID = FindProcessId(processName);
+	//DWORD processID = FindProcessId(processName);
 
-		hProcess = processInfo.hProcess;
-		//CloseHandle(processInfo.hThread);
-	}
-	else {
-		std::wcout << "Process ID is " << processID << std::endl;
+	//if (processID == 0) {
+	//	std::wcout << "Could not find " << processName.c_str() << std::endl;
+	//	std::cout << "Starting icy tower \n";
+	//	STARTUPINFO info = { sizeof(info) };
+	//	PROCESS_INFORMATION processInfo;
+	//	if (!CreateProcess(L"C:\\games\\icytower1.3\\icytower13.exe", nullptr, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
+	//		std::cerr << "Cannot start icy tower \nExit \n";
+	//		exit(1);
+	//	}
+	//	processID = FindProcessId(processName);
 
-		//Get Handle to Process
-		hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, processID);
-	}
+	//	hProcess = processInfo.hProcess;
+	//	//CloseHandle(processInfo.hThread);
+	//}
+	//else {
+	//	std::wcout << "Process ID is " << processID << std::endl;
 
-	//Getmodulebaseaddress
-	uintptr_t moduleBase = GetModuleBaseAddress(processID, L"icytower13.exe");
-	moduleBase += 0xCB908;
-	uintptr_t addr1;
-	ReadProcessMemory(hProcess, (BYTE*)moduleBase, &addr1, 4, nullptr);
-	//moduleBase ;
-	uintptr_t addr2 = addr1 * 4 + 0x004CB920;//moduleBase + 0x4CB920; //ecx*4+004CB920
-	ReadProcessMemory(hProcess, (BYTE*)addr2, &addr2, 4, nullptr);
+	//	//Get Handle to Process
+	//	hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, processID);
+	//}
 
-	uintptr_t floorAddr = addr2 + 0x28;
-	uintptr_t comboAddr = addr2 + 0x44;	
-	uintptr_t buffer = addr2 + 0x40;
-	uintptr_t mul = addr2 + 0x48;
-	uintptr_t scoreAddr = addr2 + 0x2c;
+	////Getmodulebaseaddress
+	//uintptr_t moduleBase = GetModuleBaseAddress(processID, L"icytower13.exe");
+	//moduleBase += 0xCB908;
+	//uintptr_t addr1;
+	//ReadProcessMemory(hProcess, (BYTE*)moduleBase, &addr1, 4, nullptr);
+	////moduleBase ;
+	//uintptr_t addr2 = addr1 * 4 + 0x004CB920;//moduleBase + 0x4CB920; //ecx*4+004CB920
+	//ReadProcessMemory(hProcess, (BYTE*)addr2, &addr2, 4, nullptr);
 
-	//change score
-	int newScore = 0;
-	WriteProcessMemory(hProcess, (BYTE*)scoreAddr, &newScore, sizeof(newScore), nullptr);
+	//uintptr_t floorAddr = addr2 + 0x28;
+	//uintptr_t comboAddr = addr2 + 0x44;	
+	//uintptr_t buffer = addr2 + 0x40;
+	//uintptr_t mul = addr2 + 0x48;
+	//uintptr_t scoreAddr = addr2 + 0x2c;
+
+	////change score
+	//int newScore = 0;
+	//WriteProcessMemory(hProcess, (BYTE*)scoreAddr, &newScore, sizeof(newScore), nullptr);
 
 
-	MSG msg = { 0 };
+	//MSG msg = { 0 };
 
-	RegisterHotKeys();
+	/*RegisterHotKeys();
 	while (GetMessage(&msg, NULL, 0, 0) != 0)
 	{
 		PeekMessage(&msg, 0, 0, 0, 0x0001);
@@ -74,7 +78,7 @@ int main()
 			}
 		}
 
-	}
+	}*/
 
 
 	
@@ -94,7 +98,7 @@ int main()
 
 
 
-	CloseHandle(hProcess);
+	//CloseHandle(hProcess);
 	system("PAUSE");
 	return 0;
 }
@@ -128,29 +132,6 @@ DWORD FindProcessId(const std::wstring& processName)
 	return 0;
 }
 
-uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName)
-{
-	uintptr_t modBaseAddr = 0;
-	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, procId);
-	if (hSnap != INVALID_HANDLE_VALUE)
-	{
-		MODULEENTRY32 modEntry;
-		modEntry.dwSize = sizeof(modEntry);
-		if (Module32First(hSnap, &modEntry))
-		{
-			do
-			{
-				if (!_wcsicmp(modEntry.szModule, modName))
-				{
-					modBaseAddr = (uintptr_t)modEntry.modBaseAddr;
-					break;
-				}
-			} while (Module32Next(hSnap, &modEntry));
-		}
-	}
-	CloseHandle(hSnap);
-	return modBaseAddr;
-}
 
 void RegisterHotKeys()
 {
